@@ -14,9 +14,25 @@ class DataConfig:
     target_column: str
 
 
+@dataclass 
+class RatioFeatureConfig:
+    name: str
+    numerator: str
+    denominator: str
+
 @dataclass
 class FeaturesConfig:
     scaling_method: str = "StandardScaler"
+    create_ratio_features: bool = False
+    ratio_features: List[RatioFeatureConfig] = None
+    
+    def __post_init__(self):
+        if self.ratio_features is None:
+            self.ratio_features = []
+        elif isinstance(self.ratio_features, list) and self.ratio_features:
+            # Convert dict to RatioFeatureConfig objects if needed
+            if isinstance(self.ratio_features[0], dict):
+                self.ratio_features = [RatioFeatureConfig(**rf) for rf in self.ratio_features]
 
 
 @dataclass

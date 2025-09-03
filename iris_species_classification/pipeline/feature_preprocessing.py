@@ -14,6 +14,30 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         self.scaler = StandardScaler()
         self._fitted = False
 
+    def _create_ratio_features(self, X: pd.DataFrame) -> pd.DataFrame:
+        """
+        Create ratio features based on configuration.
+        
+        Parameters:
+        X (pd.DataFrame): Input features
+        
+        Returns:
+        pd.DataFrame: Features with ratio features added
+        """
+        X_with_ratios = X.copy()
+        
+        if self.config.create_ratio_features and self.config.ratio_features:
+            for ratio_config in self.config.ratio_features:
+                if ratio_config.numerator in X.columns and ratio_config.denominator in X.columns:
+                    # Create ratio feature, handle division by zero
+                    denominator = X[ratio_config.denominator]
+                    ratio_values = X[ratio_config.numerator] / denominator.replace(0, 1e-8)  # Avoid division by zero
+                    X_with_ratios[ratio_config.name] = ratio_values
+                else:
+                    raise ValueError(f"Required columns {ratio_config.numerator} or {ratio_config.denominator} not found for ratio feature {ratio_config.name}")
+        
+        return X_with_ratios
+
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'FeatureProcessor':
         """
         Fit the feature processor to the data.
@@ -25,8 +49,11 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         Returns:
         FeatureProcessor: The fitted processor.
         """
-        # Fit StandardScaler to the features
-        self.scaler.fit(X)
+        # Create ratio features first if configured
+        X_with_ratios = self._create_ratio_features(X)
+        
+        # Fit StandardScaler to the enhanced features
+        self.scaler.fit(X_with_ratios)
         self._fitted = True
         return self
 
@@ -43,13 +70,16 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         if not self._fitted:
             raise ValueError("FeatureProcessor must be fitted before transform")
         
-        # Apply StandardScaler transformation
-        X_scaled = self.scaler.transform(X)
+        # Create ratio features first if configured
+        X_with_ratios = self._create_ratio_features(X)
         
-        # Return as DataFrame with original column names and index
+        # Apply StandardScaler transformation
+        X_scaled = self.scaler.transform(X_with_ratios)
+        
+        # Return as DataFrame with enhanced column names and index
         return pd.DataFrame(
             X_scaled,
-            columns=X.columns,
+            columns=X_with_ratios.columns,
             index=X.index
         )
 

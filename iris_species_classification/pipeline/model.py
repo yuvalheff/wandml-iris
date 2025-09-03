@@ -3,7 +3,7 @@ import numpy as np
 import pickle
 from typing import Optional
 
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, ExtraTreesClassifier
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 from iris_species_classification.config import ModelConfig
@@ -18,8 +18,11 @@ class ModelWrapper(BaseEstimator, ClassifierMixin):
 
     def _init_model(self):
         """Initialize the model based on config."""
-        if self.config.model_type.lower() == 'randomforest':
+        model_type_lower = self.config.model_type.lower()
+        if model_type_lower == 'randomforest' or model_type_lower == 'randomforestclassifier':
             self.model = RandomForestClassifier(**self.config.model_params)
+        elif model_type_lower == 'extratrees' or model_type_lower == 'extratreesclassifier':
+            self.model = ExtraTreesClassifier(**self.config.model_params)
         else:
             raise ValueError(f"Unsupported model type: {self.config.model_type}")
 

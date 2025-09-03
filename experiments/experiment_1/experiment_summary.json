@@ -1,0 +1,87 @@
+{
+  "experiment_name": "Iris Baseline Multi-Class Classification",
+  "experiment_status": "completed",
+  "completion_timestamp": "2025-09-03T12:35:12.726622Z",
+  "primary_metric": {
+    "name": "Macro-averaged AUC",
+    "value": 0.99,
+    "target": 0.95,
+    "achieved": true
+  },
+  "key_performance_metrics": {
+    "macro_auc": 0.99,
+    "accuracy": 0.97,
+    "precision_macro": 0.97,
+    "recall_macro": 0.97,
+    "f1_macro": 0.97,
+    "cv_mean": 1.00,
+    "cv_std": 0.00
+  },
+  "per_class_performance": {
+    "Iris-setosa": {
+      "precision": 1.00,
+      "recall": 1.00,
+      "f1_score": 1.00
+    },
+    "Iris-versicolor": {
+      "precision": 1.00,
+      "recall": 0.90,
+      "f1_score": 0.95
+    },
+    "Iris-virginica": {
+      "precision": 0.91,
+      "recall": 1.00,
+      "f1_score": 0.95
+    }
+  },
+  "feature_importance": {
+    "PetalLengthCm": 0.4657,
+    "PetalWidthCm": 0.4135,
+    "SepalLengthCm": 0.1132,
+    "SepalWidthCm": 0.0076
+  },
+  "model_configuration": {
+    "algorithm": "Random Forest",
+    "hyperparameters": {
+      "n_estimators": 200,
+      "max_depth": 3,
+      "min_samples_split": 2,
+      "random_state": 42
+    },
+    "preprocessing": "StandardScaler"
+  },
+  "success_criteria_met": {
+    "test_macro_auc": {"target": 0.95, "achieved": 0.99, "status": "exceeded"},
+    "cv_macro_auc": {"target": 0.99, "achieved": 1.00, "status": "exceeded"},
+    "test_accuracy": {"target": 0.90, "achieved": 0.97, "status": "exceeded"},
+    "min_f1_score": {"target": 0.80, "achieved": 0.95, "status": "exceeded"}
+  },
+  "key_strengths": [
+    "Excellent overall performance (98.67% macro AUC)",
+    "Perfect Iris-setosa classification confirming linear separability",
+    "Robust model stability with zero CV variance",
+    "Feature importance aligns with EDA findings"
+  ],
+  "identified_weaknesses": [
+    "Minor confusion between Iris-versicolor and Iris-virginica (1 misclassification)",
+    "Small test set size may limit generalization assessment",
+    "SepalWidthCm shows low importance (7.57%) suggesting potential redundancy"
+  ],
+  "future_suggestions": [
+    "Expand test set size for better generalization validation",
+    "Investigate feature selection by removing low-importance features",
+    "Test advanced ensemble methods for inter-species classification improvement",
+    "Implement probability calibration analysis"
+  ],
+  "artifacts_generated": [
+    "trained_model.pkl",
+    "feature_processor.pkl", 
+    "data_processor.pkl",
+    "mlflow_model/",
+    "confusion_matrix.html",
+    "feature_importance.html",
+    "probability_distributions.html",
+    "roc_curves.html"
+  ],
+  "execution_notes": "Experiment required 4 attempts due to initial configuration issues (metric naming, MLflow paths) but completed successfully with all targets exceeded."
+}
