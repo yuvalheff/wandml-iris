@@ -9,27 +9,29 @@ class ConfigParsingFailed(Exception):
 
 @dataclass
 class DataConfig:
-    version: str
     dataset_name: str
-    placeholder: Any
+    feature_columns: List[str]
+    target_column: str
 
 
 @dataclass
 class FeaturesConfig:
-    placeholder: Any
+    scaling_method: str = "StandardScaler"
 
 
 @dataclass
 class ModelEvalConfig:
-    split_ratio: float
-    placeholder: Any
+    primary_metric: str
+    cv_folds: int
+    cv_method: str
+    test_size: float
+    random_state: int
 
 
 @dataclass
 class ModelConfig:
     model_type: str
     model_params: Dict[str, Any]
-    placeholder: Any
 
 
 @dataclass

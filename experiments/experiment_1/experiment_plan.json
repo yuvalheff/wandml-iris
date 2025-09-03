@@ -1,0 +1,143 @@
+{
+  "experiment_name": "Iris Baseline Multi-Class Classification",
+  "experiment_description": "Baseline experiment for iris species classification using Random Forest with optimized hyperparameters and standard scaling",
+  "data_preprocessing": {
+    "steps": [
+      {
+        "step": "Load training data",
+        "description": "Load train_set.csv containing 120 samples with balanced class distribution (40 samples per species)",
+        "input_file": "data/train_set.csv",
+        "columns_to_use": ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm", "Species"]
+      },
+      {
+        "step": "Feature extraction",
+        "description": "Extract the four numerical features and target variable",
+        "feature_columns": ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm"],
+        "target_column": "Species",
+        "action": "Create X_train from feature columns and y_train from Species column"
+      },
+      {
+        "step": "Target encoding",
+        "description": "Convert string species labels to numerical labels for model training",
+        "method": "LabelEncoder",
+        "classes": ["Iris-setosa", "Iris-versicolor", "Iris-virginica"],
+        "action": "Fit LabelEncoder on y_train and transform to numerical labels"
+      },
+      {
+        "step": "Feature scaling",
+        "description": "Apply StandardScaler to normalize feature distributions",
+        "method": "StandardScaler",
+        "action": "Fit StandardScaler on X_train and transform to get X_train_scaled"
+      }
+    ]
+  },
+  "feature_engineering": {
+    "approach": "No feature engineering",
+    "rationale": "Exploration showed that baseline 4 features achieve perfect cross-validation performance. Adding engineered features (ratios, areas, polynomial) does not improve performance and increases complexity unnecessarily.",
+    "features_to_use": ["SepalLengthCm", "SepalWidthCm", "PetalLengthCm", "PetalWidthCm"],
+    "features_to_exclude": ["Id"],
+    "scaling_required": true,
+    "scaling_method": "StandardScaler"
+  },
+  "model_selection": {
+    "primary_algorithm": "Random Forest",
+    "rationale": "Random Forest achieved perfect cross-validation AUC (1.0000) with StandardScaler and demonstrated robust performance on test set (0.9867 macro AUC). Feature importance analysis confirms petal measurements are most discriminative.",
+    "hyperparameters": {
+      "n_estimators": 200,
+      "max_depth": 3,
+      "min_samples_split": 2,
+      "random_state": 42
+    },
+    "hyperparameter_tuning": {
+      "method": "GridSearchCV",
+      "cv_folds": 5,
+      "scoring": "roc_auc_ovr_weighted",
+      "parameter_grid": {
+        "n_estimators": [50, 100, 200],
+        "max_depth": [3, 5, 7, "None"],
+        "min_samples_split": [2, 5]
+      }
+    }
+  },
+  "evaluation_strategy": {
+    "primary_metric": "macro_auc",
+    "secondary_metrics": ["accuracy", "precision_macro", "recall_macro", "f1_macro"],
+    "cross_validation": {
+      "method": "StratifiedKFold",
+      "n_splits": 5,
+      "shuffle": true,
+      "random_state": 42
+    },
+    "test_evaluation": {
+      "method": "Hold-out test set evaluation",
+      "test_file": "data/test_set.csv",
+      "metrics_to_calculate": [
+        "macro_auc using roc_auc_score with multi_class='ovr' and average='macro'",
+        "classification_report for per-class metrics",
+        "confusion_matrix for error analysis"
+      ]
+    },
+    "diagnostic_analyses": [
+      {
+        "analysis": "Feature importance analysis",
+        "description": "Extract and rank feature importance from trained Random Forest to understand which measurements are most discriminative",
+        "expected_outcome": "Petal measurements (length and width) should be most important based on EDA findings"
+      },
+      {
+        "analysis": "Per-class performance analysis",
+        "description": "Analyze precision, recall, and F1-score for each species class to identify potential class-specific weaknesses",
+        "expected_outcome": "Iris-setosa should have perfect classification, while Iris-versicolor and Iris-virginica may show some confusion"
+      },
+      {
+        "analysis": "Cross-validation score distribution",
+        "description": "Report mean and standard deviation of CV scores to assess model stability",
+        "expected_outcome": "Low variance in CV scores indicates robust model performance"
+      },
+      {
+        "analysis": "Probability calibration assessment",
+        "description": "Examine predicted probabilities distribution to ensure well-calibrated predictions",
+        "method": "Plot probability distributions per class and examine confidence levels"
+      }
+    ]
+  },
+  "expected_outputs": {
+    "files": [
+      "trained_model.pkl - Serialized trained Random Forest model with StandardScaler",
+      "predictions.csv - Test set predictions with probabilities for each class",
+      "evaluation_report.json - Comprehensive metrics and diagnostic results",
+      "feature_importance.csv - Feature importance rankings from the trained model",
+      "confusion_matrix.png - Confusion matrix visualization",
+      "cv_results.json - Cross-validation detailed results"
+    ],
+    "key_metrics": [
+      "Cross-validation macro AUC (expected: ≥0.99)",
+      "Test set macro AUC (expected: ≥0.95)",
+      "Test set accuracy (expected: ≥0.90)",
+      "Per-class F1 scores for diagnostic analysis"
+    ]
+  },
+  "success_criteria": {
+    "primary": "Test set macro AUC ≥ 0.95",
+    "secondary": [
+      "Cross-validation macro AUC ≥ 0.99",
+      "Test set accuracy ≥ 0.90",
+      "All classes achieve F1-score ≥ 0.80"
+    ]
+  },
+  "iteration_context": {
+    "iteration_number": 1,
+    "previous_findings": "None - this is the first iteration",
+    "key_insights_from_eda": [
+      "Petal measurements are significantly more discriminative than sepal measurements",
+      "Iris-setosa is clearly linearly separable from other species",
+      "Iris-versicolor and Iris-virginica show some overlap requiring more sophisticated classification",
+      "Dataset is perfectly balanced with 40 samples per species in training set"
+    ],
+    "exploration_results": [
+      "Random Forest with StandardScaler achieved perfect CV AUC (1.0000)",
+      "Feature engineering approaches did not improve upon baseline performance",
+      "Simple scaling is sufficient - no complex preprocessing needed",
+      "Petal-only features achieve perfect performance but using all 4 features provides more robust model"
+    ]
+  }
+}

@@ -1,20 +1,26 @@
 data_prep:
-  dataset: "name"
-  version: "version"
-  dataset_name: "dataset_name"
-  placeholder: "placeholder"
+  dataset_name: "Iris Species Classification"
+  feature_columns: 
+    - "SepalLengthCm"
+    - "SepalWidthCm"
+    - "PetalLengthCm"  
+    - "PetalWidthCm"
+  target_column: "Species"
   
 feature_prep:
-  placeholder: "placeholder"
+  scaling_method: "StandardScaler"
 
 model_evaluation:
-    split_ratio: 0.2
-    placeholder: "placeholder"
+  primary_metric: "macro_auc"
+  cv_folds: 5
+  cv_method: "StratifiedKFold"
+  test_size: 0.2
+  random_state: 42
 
 model:
-    model_type: "model_type"
-    model_params: Dict[str, Any]
-    placeholder: "placeholder"
-
-
-
+  model_type: "RandomForest"
+  model_params:
+    n_estimators: 200
+    max_depth: 3
+    min_samples_split: 2
+    random_state: 42

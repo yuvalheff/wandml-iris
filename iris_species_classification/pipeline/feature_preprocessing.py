@@ -1,7 +1,9 @@
 from typing import Optional
 import pandas as pd
+import pickle
 
 from sklearn.base import BaseEstimator, TransformerMixin
+from sklearn.preprocessing import StandardScaler
 
 from iris_species_classification.config import FeaturesConfig
 
@@ -9,6 +11,8 @@ from iris_species_classification.config import FeaturesConfig
 class FeatureProcessor(BaseEstimator, TransformerMixin):
     def __init__(self, config: FeaturesConfig):
         self.config: FeaturesConfig = config
+        self.scaler = StandardScaler()
+        self._fitted = False
 
     def fit(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> 'FeatureProcessor':
         """
@@ -21,7 +25,9 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         Returns:
         FeatureProcessor: The fitted processor.
         """
-        # Implement fitting logic if necessary
+        # Fit StandardScaler to the features
+        self.scaler.fit(X)
+        self._fitted = True
         return self
 
     def transform(self, X: pd.DataFrame) -> pd.DataFrame:
@@ -34,10 +40,18 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         Returns:
         pd.DataFrame: The transformed features.
         """
-        # Implement transformation logic based on the config
-        # For example, you might want to select specific columns or apply transformations
-        # Here we just return the input DataFrame as a placeholder
-        return X
+        if not self._fitted:
+            raise ValueError("FeatureProcessor must be fitted before transform")
+        
+        # Apply StandardScaler transformation
+        X_scaled = self.scaler.transform(X)
+        
+        # Return as DataFrame with original column names and index
+        return pd.DataFrame(
+            X_scaled,
+            columns=X.columns,
+            index=X.index
+        )
 
     def fit_transform(self, X: pd.DataFrame, y: Optional[pd.Series] = None, **fit_params) -> pd.DataFrame:
         """
@@ -57,18 +71,20 @@ class FeatureProcessor(BaseEstimator, TransformerMixin):
         Save the feature processor as an artifact
 
         Parameters:
-        path (str): The file path to save the configuration.
+        path (str): The file path to save the processor.
         """
+        with open(path, 'wb') as f:
+            pickle.dump(self, f)
 
     def load(self, path: str) -> 'FeatureProcessor':
         """
         Load the feature processor from a saved artifact.
 
         Parameters:
-        path (str): The file path to load the configuration from.
+        path (str): The file path to load the processor from.
 
         Returns:
         FeatureProcessor: The loaded feature processor.
         """
-        # Implement loading logic if necessary
-        return self
+        with open(path, 'rb') as f:
+            return pickle.load(f)
